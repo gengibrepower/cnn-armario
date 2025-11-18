@@ -78,9 +78,12 @@ def collate_fn(batch):
     return torch.stack(imgs), torch.tensor(labels, dtype=torch.long)
 
 
-def get_dataloader(csv_path, img_dir, batch_size=32, shuffle=True):
+def get_dataloader(csv_path, img_dir, batch_size=32, shuffle=True, img_size=448):
+    from torchvision import transforms
+    from torch.utils.data import DataLoader
+
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((img_size, img_size)),  # agora dinâmico
         transforms.ToTensor()
     ])
 

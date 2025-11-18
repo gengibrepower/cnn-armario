@@ -10,7 +10,7 @@ import sys
 # --------- CONFIGS ---------
 MODEL_PATH = "modelo.pth"
 CLASSES_JSON = "classes.json"
-IMAGE_PATH = r"c:\cnn\cnn-armario\imagens\ft_celular.jpg"  # ajuste se necessário
+IMAGE_PATH = r"c:\cnn\cnn-armario\imagens\ft_4.jpg"  # ajuste se necessário
 
 # --------- checar arquivos ---------
 if not os.path.exists(MODEL_PATH):
