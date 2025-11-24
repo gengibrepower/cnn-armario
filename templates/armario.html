@@ -19,7 +19,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 40px 20px;
-            background: var(--color-light-neutral); /* Fundo Geral Claro */
+            background: var(--color-light-neutral); 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -30,7 +30,7 @@
             width: 100%;
             max-width: 900px;
             margin-bottom: 30px;
-            background: var(--color-white); /* Container Branco */
+            background: var(--color-white); 
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -67,15 +67,15 @@
             border: 1px solid var(--color-light-gray);
             border-radius: 6px;
             margin-top: 3px;
-            background: var(--color-light-beige); /* Fundo de Input Bege */
+            background: var(--color-light-beige); 
             color: var(--color-contrast-dark);
         }
         
         button {
-            background-color: var(--color-light-lavender); /* Botão Lavanda Pálido */
+            background-color: var(--color-light-lavender); 
             color: var(--color-contrast-dark);
             padding: 10px 15px;
-            border: 1px solid var(--color-contrast-dark); /* Borda de Contraste */
+            border: 1px solid var(--color-contrast-dark); 
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
@@ -87,7 +87,7 @@
         }
         
         .logout-btn {
-            background-color: var(--color-contrast-dark); /* Botão Escuro */
+            background-color: var(--color-contrast-dark); 
             color: var(--color-white);
             float: right;
             margin-top: -50px;
@@ -107,7 +107,7 @@
             margin-top: 20px;
             margin-bottom: 30px;
             padding: 20px;
-            background: var(--color-light-beige); /* Fundo de Estatísticas Bege */
+            background: var(--color-light-beige); 
             border-radius: 10px;
         }
         .count-item {
@@ -133,6 +133,22 @@
             background: var(--color-light-lavender);
             border: 1px solid var(--color-contrast-dark);
         }
+
+        /* --- Seção de Geração de Look (NOVO) --- */
+        #outfit-display {
+            display: flex; 
+            flex-wrap: wrap;
+            justify-content: center; 
+            gap: 20px; 
+            padding: 20px; 
+            border: 1px dashed var(--color-light-lavender); 
+            border-radius: 8px;
+            background: var(--color-light-beige);
+            min-height: 150px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
 
         /* --- Seção de Upload --- */
         .preview {
@@ -237,7 +253,7 @@
     <button class="logout-btn" onclick="logout()">Sair ({{ username }})</button>
 
     <h1>Armário Virtual</h1>
-    <p style="text-align: center; margin-top: -10px;">Bem-vindo, <b>{{ username }}</b>! Seu ID: {{ user_id }}</p> 
+    <p style="text-align: center; margin-top: -10px;">Bem-vindo, <b>{{ username }}</b>!</p> 
     
     <div class="message" id="alert-message" style="display: none;"></div>
 
@@ -247,6 +263,17 @@
     </div>
     
     <hr>
+    
+    <h2>Inspiração de Look ✨</h2>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button id="generate-outfit-btn" onclick="generateOutfit()">Gerar um Outfit Aleatório</button>
+    </div>
+
+    <div id="outfit-display">
+        <p>Clique em "Gerar um Outfit Aleatório" para ver a sugestão.</p>
+    </div>
+
+    <hr> 
     
     <h2>Adicionar Nova Peça</h2>
     <form id="upload-form" enctype="multipart/form-data">
@@ -374,6 +401,62 @@
         }
     }
     window.loadItemCounts = loadItemCounts;
+
+
+    // --- Lógica de Geração de Look (NOVO) ---
+    async function generateOutfit() {
+        const display = document.getElementById("outfit-display");
+        const button = document.getElementById("generate-outfit-btn");
+        
+        display.innerHTML = '<p>Montando o look, aguarde...</p>';
+        button.disabled = true;
+
+        try {
+            const response = await fetch(`${API_BASE}/outfit/generate`);
+            const data = await response.json();
+
+            if (response.ok) {
+                const outfit = data.outfit;
+                let html = '';
+
+                // Mapeia as zonas para exibição visual
+                const zone_names = {
+                    "parte_cima": "Cima",
+                    "cobertura": "Cobertura",
+                    "parte_baixo": "Baixo",
+                    "calcado": "Calçado"
+                };
+
+                for (const zone in outfit) {
+                    const item = outfit[zone];
+                    const zone_label = zone_names[zone] || zone;
+
+                    html += `
+                        <div class="item" style="width: 150px; flex-shrink: 0; box-shadow: 0 0 10px rgba(0,0,0,0.15);">
+                            <p style="margin: 0; font-size: 0.9em; color: var(--color-contrast-dark); font-weight: 500;">
+                                ${zone_label}
+                            </p>
+                            <img src="${item.image_url}" alt="${item.categoria}" style="height: 100px;">
+                            <p class="item-cat" style="margin-top: 5px;">${item.categoria}</p>
+                        </div>
+                    `;
+                }
+                display.innerHTML = html;
+                showAlert("Look sugerido gerado com sucesso!", 'success');
+
+            } else {
+                display.innerHTML = `<p style="color: #cc0000;">${data.erro || 'Erro ao montar o look.'}</p>`;
+                showAlert(data.erro || "Não foi possível gerar um look completo. Verifique se você tem peças suficientes!", 'error');
+            }
+
+        } catch (error) {
+            display.innerHTML = `<p style="color: #cc0000;">Erro de rede ao tentar gerar o look.</p>`;
+            console.error(error);
+        } finally {
+            button.disabled = false;
+        }
+    }
+    window.generateOutfit = generateOutfit;
 
 
     // --- Lógica de Upload ---

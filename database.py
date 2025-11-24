@@ -1,5 +1,3 @@
-# database.py
-
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
@@ -15,8 +13,6 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     nome = Column(String, unique=True, nullable=False)
-    
-    # 🛑 NOVIDADE: Campo para armazenar o HASH da senha
     password_hash = Column(String(128), nullable=False) 
     
     roupas = relationship("Roupa", back_populates="user", cascade="all, delete-orphan")
@@ -33,11 +29,10 @@ class Roupa(Base):
     user = relationship("User", back_populates="roupas")
 
 
-# --- Funções de Inicialização e Sessão ---
 
 def init_db():
-    # Isso criará as tabelas se elas não existirem
-    # 🛑 ATENÇÃO: Se a tabela 'users' já existir, você deve DELETAR o arquivo armario.db
+    # Isso criara as tabelas se elas nao existirem
+    # ATENCAO: Se a tabela 'users' ja existir, voce deve DELETAR o arquivo armario.db
     # para que a nova coluna 'password_hash' seja criada!
     Base.metadata.create_all(ENGINE) 
     print("Banco de dados inicializado.")

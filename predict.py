@@ -1,4 +1,3 @@
-# Conteúdo do predict.py (Versão Refatorada)
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
@@ -7,57 +6,72 @@ import logging
 import os
 from train import ClothingCNNComplex 
 
-# ... (Configuração de Logging) ...
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# --- Configuração Global ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CLASSES_PATH = os.path.join(BASE_DIR, "classes.json")
+MODEL_PATH = os.path.join(BASE_DIR, "best_model.pth")
 
-# Carregamento seguro e com fallback
+
+ID_TO_CLASS = {}
 try:
-    with open("classes.json", "r", encoding="utf-8") as f:
-        ID_TO_CLASS = json.load(f)
+    with open(CLASSES_PATH, "r", encoding="utf-8") as f:
+        ID_TO_CLASS = {k: v for k, v in json.load(f).items()} 
+    logging.info(f"Classes carregadas: {len(ID_TO_CLASS)} categorias.")
 except FileNotFoundError:
-    logging.error("O arquivo 'classes.json' não foi encontrado.")
-    ID_TO_CLASS = {}
+    logging.error(f"O arquivo de classes '{CLASSES_PATH}' não foi encontrado.")
+except Exception as e:
+    logging.error(f"Erro ao carregar classes.json: {e}")
+
+
+IMAGENET_MEAN = [0.485, 0.456, 0.406]
+IMAGENET_STD = [0.229, 0.224, 0.225]
 
 TRANSFORM = transforms.Compose([
     transforms.Resize((224, 224)),
-    transforms.ToTensor()
+    transforms.ToTensor(),
+    transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD)
 ])
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+logging.info(f"Dispositivo de inferência: {DEVICE}")
 
-# --- Configuração do Modelo (Com tratamento de erro) ---
+
 MODEL = None
+NUM_CLASSES = len(ID_TO_CLASS)
+
 try:
-    # Cria o modelo (a classe deve ser importada de train.py)
-    MODEL = ClothingCNNComplex(len(ID_TO_CLASS)).to(DEVICE)
+
+    MODEL = ClothingCNNComplex(NUM_CLASSES).to(DEVICE)
+
+    state = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=True) 
     
-    # SEGURANÇA APLICADA AQUI: weights_only=True
-    state = torch.load("modelo.pth", map_location=DEVICE, weights_only=True) 
     MODEL.load_state_dict(state, strict=False)
     MODEL.eval()
-    logging.info(f"Modelo PyTorch carregado com sucesso.")
+    logging.info(f"Modelo PyTorch '{os.path.basename(MODEL_PATH)}' carregado com sucesso.")
+except FileNotFoundError:
+    logging.error(f"O arquivo do modelo '{os.path.basename(MODEL_PATH)}' não foi encontrado. O ML está desabilitado.")
 except Exception as e:
-    logging.error(f"Erro ao carregar o modelo PyTorch: {e}. A API continuará sem predição.")
+    logging.error(f"Erro CRÍTICO ao carregar o modelo PyTorch: {e}. O ML está desabilitado.")
+    MODEL = None
 
-# --- Função de Predição (Com tratamento de erro) ---
+
 
 @torch.inference_mode()
 def predict_category(filepath):
-    """
-    Executa a inferência de ML e retorna a categoria.
-    """
-    if not MODEL:
+    if MODEL is None:
         return "Desconhecida (Modelo indisponível)"
         
     try:
         img = Image.open(filepath).convert("RGB")
+
         x = TRANSFORM(img).unsqueeze(0).to(DEVICE)
+
         out = MODEL(x)
+
         idx = torch.argmax(out, 1).item()
-        
-        # Robustez: Usa .get() para retornar 'Desconhecida' se a chave não existir
-        return ID_TO_CLASS.get(str(idx), "Desconhecida")
+
+        return ID_TO_CLASS.get(str(idx), "Desconhecida (Novo Índice)")
         
     except Exception as e:
         logging.error(f"Erro na inferência para {filepath}: {e}")
