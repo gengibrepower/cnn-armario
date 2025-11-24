@@ -4,53 +4,50 @@ import torch.optim as optim
 from dataset import get_dataloader
 import json
 from tqdm import tqdm
-import torch.nn.functional as F
+import random
+import numpy as np
 
-# ======================
-# CONFIGURAÇÕES
-# ======================
 CSV_PATH = r"C:\cnn\clothing-dataset\images.csv"
 IMG_DIR = r"C:\cnn\clothing-dataset\images_original"
 NUM_EPOCHS = 15
-BATCH_SIZE = 16  # menor por conta da resolução maior
-LR = 0.0003
-IMG_SIZE = 448  # preserva detalhes das imagens
+BATCH_SIZE = 16
+LR = 3e-4
+IMG_SIZE = 448
 
-# carregar classes
+torch.manual_seed(42)
+random.seed(42)
+np.random.seed(42)
+torch.backends.cudnn.benchmark = True
+
 with open("classes.json", "r") as f:
     class_map = json.load(f)
 
 NUM_CLASSES = len(class_map)
 
-# ======================
-# BLOCO RESIDUAL
-# ======================
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1):
         super().__init__()
         self.conv_block = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
+            nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(out_channels, out_channels, 3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
         )
-        self.relu = nn.ReLU(inplace=True)
-        self.skip = nn.Sequential()
         if stride != 1 or in_channels != out_channels:
             self.skip = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride),
+                nn.Conv2d(in_channels, out_channels, 1, stride=stride, bias=False),
                 nn.BatchNorm2d(out_channels)
             )
+        else:
+            self.skip = nn.Identity()
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
         out = self.conv_block(x)
         out += self.skip(x)
         return self.relu(out)
 
-# ======================
-# MODELO CNN COMPLEXO
-# ======================
 class ClothingCNNComplex(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
@@ -60,12 +57,10 @@ class ClothingCNNComplex(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(3, stride=2, padding=1)
         )
-
         self.layer1 = self._make_layer(64, 128, 2, stride=1)
         self.layer2 = self._make_layer(128, 256, 2, stride=2)
         self.layer3 = self._make_layer(256, 512, 2, stride=2)
         self.layer4 = self._make_layer(512, 512, 2, stride=2)
-
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Sequential(
             nn.Linear(512, 256),
@@ -87,45 +82,36 @@ class ClothingCNNComplex(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        return self.fc(x)
+        return self.fc(x.view(x.size(0), -1))
 
-# ======================
-# TREINO
-# ======================
 def treinar():
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print("Usando device:", device)
-
-    # carrega dataloader com imagens maiores
     loader = get_dataloader(CSV_PATH, IMG_DIR, batch_size=BATCH_SIZE, img_size=IMG_SIZE)
-
     model = ClothingCNNComplex(NUM_CLASSES).to(device)
     optimizer = optim.Adam(model.parameters(), lr=LR)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
     criterion = nn.CrossEntropyLoss()
+    scaler = torch.cuda.amp.GradScaler()
 
     for epoch in range(NUM_EPOCHS):
-        print(f"\n=== Epoch {epoch+1}/{NUM_EPOCHS} ===")
         model.train()
         total_loss = 0
-
         for imgs, labels in tqdm(loader):
             imgs = imgs.to(device)
             labels = labels.to(device)
-
             optimizer.zero_grad()
-            outputs = model(imgs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
+            with torch.cuda.amp.autocast():
+                outputs = model(imgs)
+                loss = criterion(outputs, labels)
+            scaler.scale(loss).backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+            scaler.step(optimizer)
+            scaler.update()
             total_loss += loss.item()
+        scheduler.step()
+        print(total_loss / len(loader))
 
-        print(f"Loss médio: {total_loss / len(loader):.4f}")
-
-    # salvar modelo
     torch.save(model.state_dict(), "modelo_complexo.pth")
-    print("\n[OK] Modelo salvo como modelo_complexo.pth")
 
 if __name__ == "__main__":
     treinar()
