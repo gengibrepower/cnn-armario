@@ -1,0 +1,11 @@
+flask
+werkzeug
+sqlalchemy
+pandas
+pillow
+torch
+torchvision
+numpy
+tqdm
+scikit-learn
+torchmetrics
