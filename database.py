@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Foreign
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 
-# O caminho do banco de dados (SQLite)
+# O caminho do banco de dados (SQLite)t
 ENGINE = create_engine("sqlite:///armario.db") 
 Base = declarative_base()
 

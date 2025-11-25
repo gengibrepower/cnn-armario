@@ -76,3 +76,4 @@ def predict_category(filepath):
     except Exception as e:
         logging.error(f"Erro na inferência para {filepath}: {e}")
         return "Desconhecida (Erro na Inferência)"
+    #isso msm

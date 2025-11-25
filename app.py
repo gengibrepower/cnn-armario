@@ -70,7 +70,7 @@ def login():
                 user = session_db.query(User).filter(User.nome == identificador).first()
 
             if user:
-                # Verifica se a senha fornecida corresponde ao hash armazenado
+                # Verifica se a senha fornecida corresponde ao hash armazenadoa
                 if check_password_hash(user.password_hash, senha):
                     session['user_id'] = user.id
                     session['username'] = user.nome

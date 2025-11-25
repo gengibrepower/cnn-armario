@@ -89,7 +89,7 @@ class ClothingDataset(Dataset):
 
         img_path = row["_img_path"]
         label_name = row["label"]
-        # Usa o mapeamento armazenado na instancia
+        # Usa o mapeamento armazenado na instanciaa
         label = self._class_to_id[label_name] 
 
         img = Image.open(img_path).convert("RGB")
