@@ -1,45 +1,102 @@
-# Flask Application
+# Armário Inteligente – README
 
-This project is a simple Flask web application that provides basic
-routing and demonstrates how to structure a minimal Python web server.
+Este projeto é um sistema web em Flask que permite:
 
-## 🚀 Features
+- Cadastro e login de usuários
+- Upload de imagens de roupas
+- Classificação automática usando um modelo de IA em PyTorch
+- Armazenamento das roupas no banco SQLite
 
--   Flask server with defined routes\
--   Easy-to-run development environment\
--   Clean and minimal project structure
+## 📌 Estrutura necessária do projeto
 
-## 📁 Project Structure
-
-    project/
-    │── app.py
-    │── requirements.txt
-    └── README.md
-
-## ▶️ Running the Project
-
-1.  Install dependencies:
-
-```{=html}
-<!-- -->
 ```
-    pip install -r requirements.txt
-
-2.  Run the Flask server:
-
-```{=html}
-<!-- -->
+/projeto
+    app.py
+    database.py
+    predict.py
+    train.py
+    classes.json
+    best_model.pth
+    /templates
+        index.html
+        armario.html
+    /uploads
+    requirements.txt
+    README.md
 ```
-    python app.py
 
-3.  Open your browser at:
+## 🛠 Tecnologias usadas
 
-```{=html}
-<!-- -->
+- Python 3.12
+- Flask
+- SQLAlchemy (SQLite)
+- PyTorch + Torchvision
+- Pillow
+- JSON
+
+## 📦 Instalação
+
+### 1. Instalar dependências
+
 ```
-    http://127.0.0.1:5000
+pip install -r requirements.txt
+```
 
-## 📌 Requirements
+Se usar PyTorch CPU:
 
--   Python 3.8+
--   Flask
+```
+pip install torch torchvision
+```
+
+### 2. Inicializar banco de dados
+
+O banco será criado automaticamente ao rodar o app:
+
+```
+python app.py
+```
+
+## 🚀 Execução
+
+```
+python app.py
+```
+
+Acesse:
+
+```
+http://127.0.0.1:5000
+```
+
+## 📁 Arquivos importantes
+
+### **database.py**
+- Cria e gerencia o banco SQLite (`armario.db`)
+- Define tabelas `users` e `clothes`
+
+### **predict.py**
+- Carrega modelo `best_model.pth`
+- Aplica transformações
+- Executa inferência para classificar roupas
+
+### **train.py**
+- Contém a arquitetura `ClothingCNNComplex`
+- Necessário para carregar os pesos do PyTorch
+
+### **classes.json**
+- Mapeia IDs → nomes de categorias
+
+### **best_model.pth**
+- Pesos treinados do modelo
+
+## ⚠️ Importante
+
+Se modificar o modelo no `train.py`, talvez seja preciso **apagar o arquivo `armario.db`** para recriar as tabelas corretamente.
+
+Se `best_model.pth` ou `classes.json` não estiverem presentes, o sistema funciona, mas a IA será desativada.
+
+---
+
+## 👤 Autor
+
+Felipe Gegembauer
