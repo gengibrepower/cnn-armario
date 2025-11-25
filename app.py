@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 # Chave secreta obrigatoria para o funcionamento seguro das Sessoes
-app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "uma_chave_secreta_padrao_muito_forte_12345")
+app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "chave_foda123")
 
 # Inicializa as tabelas do DB ao iniciar a aplicacao
 init_db()
