@@ -1,0 +1,110 @@
+/* Variáveis de Cores (Nova Paleta Ultra-Clara) */
+:root {
+    --color-light-beige: #d5d8c7;  /* Fundo Secundário, Fundo de Inputs */
+    --color-light-gray: #d4d6ce;   /* Bordas, Destaques */
+    --color-light-neutral: #d3d5d5; /* Fundo Geral */
+    --color-light-lavender: #d1d3dc; /* Botões (Base) */
+    --color-medium-lavender: #d0d2e3; /* Botões (Hover) */
+    --color-contrast-dark: #586875; /* Cinza escuro para texto e ênfase (Contraste) */
+    --color-white: #ffffff;
+}
+
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+    background: var(--color-light-neutral); /* Fundo Geral */
+    margin: 0; 
+    color: var(--color-contrast-dark); /* Texto Escuro */
+}
+
+.container { 
+    width: 100%; 
+    max-width: 380px; 
+    padding: 40px; 
+    background: var(--color-white); /* Container branco para destaque */
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+    text-align: center; 
+    border: 1px solid var(--color-light-gray);
+}
+
+h1 { 
+    color: var(--color-contrast-dark); 
+    margin-bottom: 5px;
+    font-size: 1.8em; 
+}
+
+h2 {
+    color: var(--color-contrast-dark);
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+input[type="text"], 
+input[type="password"] { 
+    width: 100%; 
+    padding: 12px; 
+    margin-bottom: 15px; 
+    box-sizing: border-box; 
+    border: 1px solid var(--color-light-gray); 
+    border-radius: 6px; 
+    background: var(--color-light-beige); /* Fundo de input levemente bege */
+    color: var(--color-contrast-dark); 
+    font-size: 1em;
+}
+
+input::placeholder {
+    color: var(--color-contrast-dark);
+    opacity: 0.6;
+}
+
+button { 
+    background-color: var(--color-light-lavender); /* Botão Lavanda Pálido */
+    color: var(--color-contrast-dark); 
+    padding: 12px 20px; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    width: 100%; 
+    font-size: 1em; 
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.1s; 
+    border: 1px solid var(--color-contrast-dark); /* Borda sutil de contraste */
+}
+
+button:hover { 
+    background-color: var(--color-medium-lavender); /* Lavanda um pouco mais forte no hover */
+    transform: translateY(-1px);
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: var(--color-light-gray);
+    margin: 35px 0;
+    opacity: 0.8;
+}
+
+/* Mensagens de Alerta */
+.message { 
+    padding: 12px; 
+    margin-bottom: 20px; 
+    border-radius: 6px; 
+    font-weight: bold;
+    display: none; 
+    text-align: left;
+}
+.message.error { 
+    background-color: #ffebeb; /* Fundo de erro muito claro00 */
+    color: #cc0000; 
+    border: 1px solid #ff9999;
+}
+.message.success { 
+    background-color: #f0f8e9; /* Fundo de sucesso muito claro */
+    color: #155724; 
+    border: 1px solid #c3e6cb; 
+}
